@@ -1,8 +1,10 @@
 #![feature(str_split_whitespace_as_str)]
 
+use std::error::Error;
+
 const FILENAME: &str = "input.txt";
 
-fn main() -> anyhow::Result<()> {
+fn main() -> Result<(), Box<dyn Error>> {
     let file = std::fs::read_to_string(FILENAME)?;
     let elfs: Vec<Vec<i32>> = file
         .split("\n\n")
