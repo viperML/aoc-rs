@@ -14,16 +14,25 @@ fn main() -> anyhow::Result<()> {
         })
         .collect();
 
-    let elfs_total: Vec<_> = elfs
+    let mut elfs_total: Vec<_> = elfs
         .iter()
         .map(|e| e.iter().fold(0, |acc, x| acc + x))
         .collect();
 
-    let result = elfs_total
+    elfs_total.sort_by(|a, b| b.cmp(a));
+
+    println!("result1: {:?}", elfs_total);
+
+    let result1 = elfs_total
         .iter()
         .fold(0, |acc, &x| if acc > x { acc } else { x });
 
-    println!("{:?}", result);
+    println!("result1: {:?}", result1);
+
+    let (first_three, _) = elfs_total.split_at(3);
+    let result2 = first_three.iter().fold(0, |acc, x| acc + x);
+
+    println!("result2: {:?}", result2);
 
     Ok(())
 }
