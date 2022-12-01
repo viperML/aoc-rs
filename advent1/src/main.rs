@@ -23,12 +23,9 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     elfs_total.sort_by(|a, b| b.cmp(a));
 
-    match &*elfs_total {
-        [first, second, third, _tail @ ..] => {
-            println!("result1: {}", first);
-            println!("result2: {}", first+second+third);
-        },
-        _=>{}
+    if let [first, second, third, _tail @ ..] = &*elfs_total {
+        println!("result1: {}", first);
+        println!("result2: {}", first + second + third);
     }
 
     Ok(())
