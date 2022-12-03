@@ -3,4 +3,5 @@
 members = [
     "advent1",
     "advent2",
+    "advent3",
 ]
