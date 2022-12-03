@@ -1,72 +1,99 @@
-use std::error::Error;
+use std::{collections::HashSet, error::Error, result};
 
-const FILENAME: &str = "input_test.txt";
+use fern::colors::Color;
+use log::debug;
+
+const CONVERSION: &str = "------------ZYXWVUTSRQPONMLKJIHGFEDCBAzyxwvutsrqponmlkjihgfedcba";
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let file = std::fs::read_to_string(FILENAME)?;
-
-    println!(
-        "{:?}",
-        "abcxyz".bytes().map(|b| value(b)).collect::<Vec<_>>()
-    );
-    println!(
-        "{:?}",
-        "ABCXYZ".bytes().map(|b| value(b)).collect::<Vec<_>>()
-    );
+    setup_logging()?;
+    let filename = if cfg!(debug_assertions) {
+        "input_test.txt"
+    } else {
+        "input.txt"
+    };
+    let file = std::fs::read_to_string(filename)?;
 
     let rucksacks = file
         .lines()
-        .map(|line| line.as_bytes().split_at(line.len() / 2))
+        .map(|line| line.split_at(line.len() / 2))
         .collect::<Vec<_>>();
 
-    let scores: Vec<_> = rucksacks
+    let scores = rucksacks
         .iter()
-        .map(|(letters_left, letters_right)| {
-            // letters_left.intersect(letters_right)
-            println!("checking {:?}<>{:?}", letters_left, letters_right);
-            letters_left.iter().fold(0, |acc, &l_left| {
-                acc + {
-                    if letters_right.contains(&l_left) {
-                        println!("contains {}", l_left);
-                        value(l_left)
-                    } else {
-                        0
-                    }
-                }
-            })
+        .map(|(left, right)| {
+            debug!("{}<>{}", left, right);
+            let common_letters_mask = str_to_mask(left) & str_to_mask(right);
+            debug!("0b{}", CONVERSION);
+            debug!("{:#066b}", common_letters_mask);
+
+            let result = (0..52).fold(0, |acc, i| {
+                let mask = 1 << i;
+                let value = common_letters_mask & mask;
+                acc + if value != 0 { i + 1 } else { 0 }
+            });
+            debug!("{}", result);
+            result
         })
-        .collect();
+        .collect::<Vec<u64>>();
 
-    println!("{:?}", rucksacks);
-    println!("{:?}", scores);
-
-    // if let [head, tail @ ..] = &*rucksacks {
-    //     let letters_left = head.0.as_bytes();
-    //     let letter_right = head.1.as_bytes();
-
-    //     let z: u64 = letters_left.iter().fold(0, |acc, &letter_left| {
-    //         letter_right.iter().fold(0, |acc_y, &letter_right| {
-    //             if letter_left == letter_right {
-    //                 acc + value(letter_left)
-    //             } else {
-    //                 acc
-    //             }
-    //         })
-    //     });
-
-    //     println!("{:?}", letters_left);
-    //     println!("{:?}", letter_right);
-    //     println!("{:?}", z);
-    // }
+    let result: u64 = scores.iter().sum();
+    println!("result: {}", result);
 
     Ok(())
 }
 
-fn value(letter: u8) -> u64 {
-    if letter <= 90 {
-        letter - 64 + 26
-    } else {
-        letter - 96
+fn str_to_mask(s: &str) -> u64 {
+    let bytes = s
+        .bytes()
+        .map(|b| if b >= 97 { b - 97 } else { b - 39 })
+        .collect::<HashSet<_>>();
+
+    let mut result = 0;
+
+    // println!("{:?}", bytes);
+
+    for b in &bytes {
+        let x: u64 = 1 << b;
+        result = result | &x;
+        // println!("{:#066b}", x);
     }
-    .into()
+
+    result
+}
+
+fn setup_logging() -> Result<(), log::SetLoggerError> {
+    let loglevel = if cfg!(debug_assertions) {
+        log::LevelFilter::Debug
+    } else {
+        log::LevelFilter::Info
+    };
+
+    let color_text = fern::colors::ColoredLevelConfig::new()
+        .debug(Color::BrightBlack)
+        .error(Color::White)
+        .trace(Color::BrightBlue);
+
+    let color_symbol = fern::colors::ColoredLevelConfig::new()
+        .debug(Color::BrightBlack)
+        .error(Color::Red)
+        .error(Color::Red)
+        .info(Color::Green)
+        .trace(Color::BrightBlue)
+        .warn(Color::Yellow);
+
+    fern::Dispatch::new()
+        .format(move |out, message, record| {
+            out.finish(format_args!(
+                "{color_line}{message}\x1B[0m",
+                color_line = format_args!(
+                    "\x1B[{}m",
+                    color_text.get_color(&record.level()).to_fg_str()
+                ),
+                message = message,
+            ));
+        })
+        .level(loglevel)
+        .chain(std::io::stdout())
+        .apply()
 }
