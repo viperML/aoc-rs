@@ -12,14 +12,16 @@ fn main() -> Result<(), Box<dyn Error>> {
     } else {
         "input.txt"
     };
-    let file = std::fs::read_to_string(filename)?;
 
-    let rucksacks = file
-        .lines()
+    let file = std::fs::read_to_string(filename)?;
+    let lines = file.lines().collect::<Vec<_>>();
+
+    let rucksacks = lines
+        .iter()
         .map(|line| line.split_at(line.len() / 2))
         .collect::<Vec<_>>();
 
-    let scores = rucksacks
+    let part1_scores = rucksacks
         .iter()
         .map(|(left, right)| {
             debug!("{}<>{}", left, right);
@@ -27,18 +29,36 @@ fn main() -> Result<(), Box<dyn Error>> {
             debug!("0b{}", CONVERSION);
             debug!("{:#066b}", common_letters_mask);
 
-            let result = (0..52).fold(0, |acc, i| {
-                let mask = 1 << i;
-                let value = common_letters_mask & mask;
-                acc + if value != 0 { i + 1 } else { 0 }
-            });
+            let result = mask_score(common_letters_mask);
             debug!("{}", result);
             result
         })
         .collect::<Vec<u64>>();
 
-    let result: u64 = scores.iter().sum();
-    println!("result: {}", result);
+    let part1_result: u64 = part1_scores.iter().sum();
+    println!("part 1 result: {}", part1_result);
+
+    let groups = lines.chunks(3).collect::<Vec<_>>();
+
+    let part2_scores = groups
+        .iter()
+        .map(|&elem| {
+            if let [first, second, third] = elem {
+                debug!("{}\n{}\n{}", first, second, third);
+                let common_letters_mask =
+                    str_to_mask(first) & str_to_mask(second) & str_to_mask(third);
+                debug!("0b{}", CONVERSION);
+                debug!("{:#066b}", common_letters_mask);
+                let score = mask_score(common_letters_mask);
+                score
+            } else {
+                panic!("Failed to split in groups of 3: {:?}", elem);
+            }
+        })
+        .collect::<Vec<_>>();
+
+    let part2_result: u64 = part2_scores.iter().sum();
+    println!("part 2 result: {}", part2_result);
 
     Ok(())
 }
@@ -51,15 +71,19 @@ fn str_to_mask(s: &str) -> u64 {
 
     let mut result = 0;
 
-    // println!("{:?}", bytes);
-
     for b in &bytes {
-        let x: u64 = 1 << b;
-        result = result | &x;
-        // println!("{:#066b}", x);
+        result = result | &(1 << b);
     }
 
     result
+}
+
+fn mask_score(mask: u64) -> u64 {
+    (0..52).fold(0, |acc, i| {
+        let filter_mask = 1 << i;
+        let value = mask & filter_mask;
+        acc + if value != 0 { i + 1 } else { 0 }
+    })
 }
 
 fn setup_logging() -> Result<(), log::SetLoggerError> {
