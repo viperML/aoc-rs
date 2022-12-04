@@ -1,7 +1,9 @@
 [workspace]
 
 members = [
+    "advent-common",
     "advent1",
     "advent2",
     "advent3",
+    "advent4",
 ]

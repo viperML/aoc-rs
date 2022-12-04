@@ -3,6 +3,14 @@
 version = 3
 
 [[package]]
+name = "advent-common"
+version = "0.1.0"
+dependencies = [
+ "fern",
+ "log",
+]
+
+[[package]]
 name = "advent1"
 version = "0.1.0"
 
@@ -18,6 +26,14 @@ name = "advent3"
 version = "0.1.0"
 dependencies = [
  "fern",
+ "log",
+]
+
+[[package]]
+name = "advent4"
+version = "0.1.0"
+dependencies = [
+ "advent-common",
  "log",
 ]
 
