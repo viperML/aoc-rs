@@ -4,35 +4,40 @@ fn main() -> anyhow::Result<()> {
     advent_common::setup_logging()?;
 
     let input = std::fs::read("input.txt")?;
-    debug!("{:?}", input);
 
-    // input.iter().fold(None, |acc: Option<usize>, x| todo!());
-    let result1 = find_start(&input, 0) + 4;
+    let result1 = find_start(&input, 4, 0) + 4;
     info!("result1: {}", result1);
+
+    let result2 = find_start(&input, 14, 0) + 14;
+    info!("result2: {}", result2);
 
     Ok(())
 }
 
-fn find_start(elems: &[u8], index: usize) -> usize {
-    match elems {
-        [a, b, c, y, ..] => {
-            let slice = &[a, b, c, y];
-
-            let all_different = !slice.iter().fold(false, |acc, x| {
-                acc | (slice.iter().filter(|&y| x == y).count() >= 2)
-            });
-            // .fold(false, |result, x| result | slice.contains(x));
-
-            debug!("{} Checking: {:?} -> {}", index, slice, all_different);
-
-            if all_different {
+fn find_start(elems: &[u8], size: usize, index: usize) -> usize {
+    match elems.get(0..size) {
+        None => todo!(),
+        Some(ref slice) => {
+            debug!("{} checking: {:?}", index, slice);
+            if all_different(slice) {
                 index
-            } else if let [_, tail @ ..] = elems {
-                find_start(tail, index + 1)
+            } else if let [_, ref tail @ ..] = elems {
+                find_start(tail, size, index + 1)
             } else {
                 todo!("FIXME")
             }
         }
-        _ => todo!("FIXME"),
     }
+}
+
+fn all_different<T: PartialEq>(slice: &[T]) -> bool {
+    !slice.iter().fold(false, |acc, elem| {
+        acc | (slice.iter().filter(|&another| elem == another).count() >= 2)
+    })
+}
+
+#[test]
+fn test_different() {
+    assert_eq!(all_different(&[1,2,3,4]), true);
+    assert_eq!(all_different(&[1,2,3,4,4]), false);
 }
