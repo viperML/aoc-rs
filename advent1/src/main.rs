@@ -1,11 +1,10 @@
-#![feature(str_split_whitespace_as_str)]
-
-use std::{error::Error, result};
+use eyre::Result;
 
 const FILENAME: &str = "input.txt";
 
-fn main() -> Result<(), Box<dyn Error>> {
+fn main() -> Result<()> {
     let file = std::fs::read_to_string(FILENAME)?;
+
     let elfs: Vec<Vec<i32>> = file
         .split("\n\n")
         .map(|lines| {

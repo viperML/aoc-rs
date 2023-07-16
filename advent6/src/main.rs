@@ -1,6 +1,7 @@
 use log::{debug, info};
+use eyre::Result;
 
-fn main() -> anyhow::Result<()> {
+fn main() -> Result<()> {
     advent_common::setup_logging()?;
 
     let input = std::fs::read("input.txt")?;

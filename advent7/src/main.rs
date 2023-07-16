@@ -1,12 +1,13 @@
-use log::debug;
+use eyre::Result;
+use tracing::info;
 
-fn main() -> anyhow::Result<()> {
+fn main() -> Result<()> {
     advent_common::setup_logging()?;
     let file = advent_common::file()?;
     // debug!("{}", file);
 
     let test = std::fs::canonicalize("/a/../c");
-    debug!("{:?}", test);
+    info!(?test);
 
 
     Ok(())

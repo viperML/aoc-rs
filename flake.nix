@@ -1,12 +1,7 @@
 {
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-22.11";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.05";
     flake-parts.url = "github:hercules-ci/flake-parts";
-    fenix = {
-      url = "github:nix-community/fenix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    nix-filter.url = "github:numtide/nix-filter";
   };
 
   outputs = inputs @ {
@@ -15,36 +10,23 @@
     flake-parts,
     ...
   }:
-    flake-parts.lib.mkFlake {inherit self;} {
+    flake-parts.lib.mkFlake {inherit inputs;} {
       systems = [
         "aarch64-linux"
         "x86_64-linux"
       ];
 
-      perSystem = {
-        system,
-        pkgs,
-        config,
-        ...
-      }: {
-        packages = {
-          _toolchain_dev = with inputs.fenix.packages.${system}; (complete.withComponents [
-            "rustc"
-            "cargo"
-            "rust-src"
-            "clippy"
-            "rustfmt"
-            "rust-analyzer"
-          ]);
-        };
-
+      perSystem = {pkgs, ...}: {
         devShells.default = with pkgs;
           mkShell {
-            # Shell with CC
             name = "dev";
-            RUST_SRC_PATH = "${config.packages._toolchain_dev}/lib/rustlib/src/rust/library";
+            RUST_SRC_PATH = "${rustPlatform.rustLibSrc}";
+            RUST_BACKTRACE = "1";
             packages = [
-              config.packages._toolchain_dev
+              cargo
+              rustc
+              rust-analyzer-unwrapped
+              rustfmt
             ];
           };
       };

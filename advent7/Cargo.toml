@@ -8,4 +8,5 @@ edition = "2021"
 [dependencies]
 advent-common = { path = "../advent-common" }
 anyhow = "1.0.66"
-log = "0.4.17"
+eyre = "0.6.8"
+tracing = "0.1.37"
